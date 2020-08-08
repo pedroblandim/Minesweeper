@@ -2,17 +2,10 @@
 body{
   font-family: 'Lemonada', cursive;
   /* background-color: rgb(103, 179, 226); */
-  background-color: rgba(8, 20, 87, 0.876);
+  background-color: rgba(16, 32, 128, 0.876);
   /* background: #2193b0;  
   background: -webkit-linear-gradient(to right, #6dd5ed, #2193b0);
   background: linear-gradient(to right, #6dd5ed, #2193b0);  */
 
 }
 
-table { 
-  border-spacing: 0px;
-  border-collapse: separate;
-  /* border:3px solid #00416A; */
-  border-radius: 2px;
-  margin: 0 auto;
-}

@@ -1,11 +1,13 @@
-import React, {useState, useEffect} from 'react';
+import React from 'react';
 import Minesweeper from './components/Minesweeper';
 import './App.css';
 
 const App:React.FC = () => {
 
   return (
-    <Minesweeper />
+    <div style={{width:"100%", position:"relative"}} >
+      <Minesweeper />
+    </div>
   );
 }
 

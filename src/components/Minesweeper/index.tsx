@@ -1,12 +1,13 @@
 import React, {useState, useEffect} from 'react';
-import Mine from '../Mine';
+import Square from '../Square';
+import ConfigBar from '../ConfigBar';
 import './styles.css';
 
 
-interface Square {
-    hasMine: Boolean;
-    isOpen: Boolean;
-    minesAround: number;
+interface ISquare {
+  hasMine: Boolean;
+  isOpen: Boolean;
+  minesAround: number;
 }
 
 
@@ -22,16 +23,17 @@ interface GameConfigs {
   mines: number;
 }
 
-// TODO refact Game interface to a array of squares (or spaces or boxes)
-// TODO create ConfigBar element
+// TODO restart time when the game restarts
 // TODO do GameOver functions
+// TODO flags counter
+// TODO win function
 
 
 const gameConfigsOptions:{[key:string]: GameConfigs} = {
   "easy":{
     "rows": 8,
     "columns": 10,
-    "mines": 20
+    "mines": 10
   },
   "normal":{
     "rows": 14,
@@ -40,23 +42,22 @@ const gameConfigsOptions:{[key:string]: GameConfigs} = {
 
   },
   "hard":{
-    "rows": 20,
+    "rows": 18,
     "columns": 25,
-    "mines": 100
+    "mines": 70
   }
 }
 
-const App:React.FC = () => {
+const Minesweeper:React.FC = () => {
 
   const defaultDifficulty = "easy";
   
-  const [difficulty, setDifficulty]   = useState(defaultDifficulty);
-  const [gameConfigs, setGameConfigs] = useState<GameConfigs>(gameConfigsOptions[difficulty]);
+  const [gameConfigs, setGameConfigs] = useState<GameConfigs>(gameConfigsOptions[defaultDifficulty]);
   const [gameStatus, setGameStatus]   = useState<GameStatus>({gameOver: false, minesLeft: 0, minesOpened: 0});
 
-  const [squares, setSquares]         = useState<Square[][]>([[{hasMine:false, isOpen: false, minesAround: 0}]]);
+  const [squares, setSquares]         = useState<ISquare[][]>([[{hasMine:false, isOpen: false, minesAround: 0}]]);
   
-  const setMines = (squares: Square[][]) => {
+  const setMines = (squares: ISquare[][]) => {
     const {mines} = gameConfigs;
     
     let minesToPlace = mines;
@@ -65,14 +66,14 @@ const App:React.FC = () => {
     }
   }
 
-  const fillWithMinesRandomly = (squares: Square[][], minesToPlace: number):  number => {
+  const fillWithMinesRandomly = (squares: ISquare[][], minesToPlace: number):  number => {
     const columns = squares[0].length;
     const rows    = squares.length;
     let minesPlaced     = 0;
 
     for(let i = 0; i < rows; i++ ){
       for(let j = 0; j < columns; j++){
-        if(minesPlaced < minesToPlace && !squares[i][j].hasMine && (Math.random() * 10) >= 9){
+        if(minesPlaced < minesToPlace && !squares[i][j].hasMine && (Math.random() * 10) > 9){
           squares[i][j].hasMine = true;
           minesPlaced++;
         }
@@ -81,7 +82,7 @@ const App:React.FC = () => {
     return minesToPlace - minesPlaced;
   }
 
-  const setNumbers = (squares: Square[][]) => {
+  const setNumbers = (squares: ISquare[][]) => {
     const rows    = squares.length;
     const columns = squares[0].length;
 
@@ -94,7 +95,7 @@ const App:React.FC = () => {
     
   }
 
-  const getMinesAroundPlace =  (row: number, column: number, squares: Square[][]):number => {
+  const getMinesAroundPlace =  (row: number, column: number, squares: ISquare[][]):number => {
     const {rows:totalRows, columns:totalColumns} = gameConfigs;
     let count = 0;
     for(let i = row - 1 ; i <= row + 1; i++){
@@ -112,21 +113,18 @@ const App:React.FC = () => {
   }
 
   useEffect(startGame, []);
+  useEffect(startGame, [gameConfigs]);
 
-  function startGame(){
-    updateGameConfigs();
+  function startGame(){ // also restarts 
     createGame();
     createGameStatus();
   }  
 
-  function updateGameConfigs(){
-    setGameConfigs(gameConfigsOptions[difficulty]);
-  }
 
   function createGame(){
     const {rows, columns} = gameConfigs;
 
-    const squares = createEmptyMatrix<Square>(rows, columns, {hasMine: false, isOpen: false, minesAround: 0});
+    const squares = createEmptyMatrix<ISquare>(rows, columns, {hasMine: false, isOpen: false, minesAround: 0});
     setMines(squares);
     setNumbers(squares);
     setSquares(squares);
@@ -157,8 +155,16 @@ const App:React.FC = () => {
     }
   }
   
+  const changeGameDifficulty = (newDifficulty: string) => {
+    let newGameConfigs = gameConfigsOptions[newDifficulty];
+    setGameConfigs(newGameConfigs);
+  }
+
   function gameOver(){
-    console.log("GAME OVER")
+    let updatedGameStatus = {...gameStatus};
+    updatedGameStatus.gameOver = true;
+    setGameStatus(updatedGameStatus);
+    console.log("perdeu");
   }
 
   function openThisAndPlacesAround(row: number, column: number){
@@ -209,11 +215,18 @@ const App:React.FC = () => {
   }
   
 
-  useEffect(() => {
-    setGameConfigs(gameConfigsOptions[difficulty]);
-  }, [difficulty]);
 
   return (
+    <div  className="gameContainer" 
+          style={{width:gameConfigs.columns*40}}>
+
+    <ConfigBar  flagsLeft={40} 
+                gameOver={gameStatus.gameOver} 
+                mines={gameConfigs.mines}
+                changeGameDifficulty={changeGameDifficulty}
+                difficulties={Object.keys(gameConfigsOptions)}
+                />
+    
     <table >
       <tbody>
       {squares.map( (row, i) =>{
@@ -221,7 +234,7 @@ const App:React.FC = () => {
           <tr key={i} >
             {row.map((square, j) => {
               const {hasMine, minesAround, isOpen} = square;
-              return <Mine  key         = {`${i}x${j}`} 
+              return <Square  key         = {`${i}x${j}`} 
                             row         = {i} 
                             column      = {j} 
                             opened      = {isOpen} 
@@ -235,10 +248,11 @@ const App:React.FC = () => {
 
       </tbody>
    </table>
+   </div>
   );
 }
 
-export default App;
+export default Minesweeper;
 
 
 function createEmptyMatrix<T>(rows: number, columns: number, defaultValue: T): T[][]{

@@ -1,38 +1,68 @@
-import React, {useState, useEffect} from 'react';
+import React from 'react';
 import './styles.css';
 import { FcClock } from 'react-icons/fc'
 
 
-interface timerProps{
-    initialSeconds: number;
-    stop: Boolean;
+
+interface TimerState {
+    seconds: number;
+
 }
 
-const Timer:React.FC<timerProps> = (props:timerProps) => {
+interface Timer {
+    timerId: NodeJS.Timeout;
+}
 
-    const [seconds, setSeconds] = useState<number>(props.initialSeconds);
+class Timer extends React.Component<{}, TimerState> {
     
-    useEffect(() => {
-        
-        let id = setTimeout(updateTime, 1000);
-        
-        if(props.stop)
-            clearTimeout(id);
-        
-    },[seconds])
+    constructor(props:{}){
+        super(props);
+        this.state = {
+            seconds: 0
+        };
+    }
 
-    const updateTime = () => {
-        setSeconds(seconds + 1);
-    } 
+    componentDidMount() {
+        this.start();
+    }
 
-    return(
-        <>
-        <div className="timerContainer">
-            <FcClock  size={30} />
-            <p>{seconds}</p> 
-        </div>
-        </>
-    );
+    componentWillUnmount(){
+        this.stop();
+    }
+
+    tick() {
+        this.setState({
+            seconds: this.state.seconds + 1
+        })
+    }
+
+    start(){
+        this.stop();
+        this.timerId = setInterval(() => this.tick(), 1000);
+    }
+
+    restart(){
+        this.setState({
+            seconds: 0
+        });
+        this.start();
+    }
+
+    stop(){
+        clearInterval(this.timerId);
+    }
+
+    render() {
+        return(
+            <>
+            <div className="timerContainer">
+                <FcClock  size={30} />
+                <p>{this.state.seconds}</p> 
+            </div>
+            </>
+        );
+    }
 }
+
 
 export default Timer;

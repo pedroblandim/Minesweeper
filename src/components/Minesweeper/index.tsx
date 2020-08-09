@@ -1,7 +1,10 @@
 import React, {useState, useEffect, useRef} from 'react';
 import Square from '../Square';
 import ConfigBar from '../ConfigBar';
+import gameOverModal from '../GameOverModal';
+
 import './styles.css';
+import GameOverModal from '../GameOverModal';
 
 
 interface ISquare {
@@ -28,9 +31,8 @@ interface GameConfigs {
   mines: number;
 }
 
-// TODO refact dropdown
-// TODO do GameOver functions
-// TODO make logic that passes game over animation when user clicks
+// TODO implement gameOverModal
+// TODO refact dropdown (apply styles)
 // TODO flags counter
 // TODO win function
 
@@ -64,14 +66,13 @@ const Minesweeper:React.FC = () => {
   const [gameConfigs, setGameConfigs] = useState<GameConfigs>(gameConfigsOptions[defaultDifficulty]);
   const [gameStatus, setGameStatus]   = useState<GameStatus>({gameOver: false, minesLeft: 0, minesOpened: 0});
 
-  const [areMinesSet, setAreMinesSet] = useState<Boolean>(false);
-
   const [squares, setSquares]         = useState<ISquare[][]>([[defaultSquare]]);
   
+  const [areMinesSet, setAreMinesSet] = useState<Boolean>(false);
+  const [showGameOverModal, setShowGameOverModal] = useState<Boolean>(false);
 
   useEffect(startGame, []);
   useEffect(startGame, [gameConfigs]);
-  useEffect(setClickListener, [gameStatus]);
 
   function startGame(){ // also restarts 
     createSquares();
@@ -101,16 +102,10 @@ const Minesweeper:React.FC = () => {
   }
    
 
-
-  function setClickListener() {
-    // if(!gameOver)
-      // return false;
-
-    // document.body.addEventListener()
-    
-  }
-  
   const handleOpening = (row: number, column: number) => {
+    const {hasMine, isOpen, minesAround} = squares[row][column];
+    
+    if(isOpen || gameStatus.gameOver) return false;
     
     if(!areMinesSet){
       setMinesAround({row, column});
@@ -118,18 +113,11 @@ const Minesweeper:React.FC = () => {
       setAreMinesSet(true);
     }
 
-    const {hasMine, isOpen, minesAround} = squares[row][column];
-    
-    if(isOpen)
-      return false;
-
-    if(gameContainerRef.current && (hasMine || minesAround === 0)){
-      shakeDiv(gameContainerRef.current);
-    }
+    if(gameContainerRef.current && (hasMine || !minesAround)) shakeDiv(gameContainerRef.current);
 
     if(hasMine){
       open(row, column);
-      gameOver(row, column);  
+      gameOver({row, column});  
     } else {
       openThisAndPlacesAround(row, column);
     }
@@ -242,11 +230,14 @@ const Minesweeper:React.FC = () => {
   }
   
 
-  const gameOver = (row: number, column: number) => {
+  const gameOver = (position: Position) => {
+    const {row, column} = position;
     const openedMine = squares[row][column];
+
     let updatedGameStatus = {...gameStatus};
     updatedGameStatus.gameOver = true;
     setGameStatus(updatedGameStatus);
+
     openAllMinesAround(openedMine.position);
     setAreMinesSet(false);
   }
@@ -256,6 +247,8 @@ const Minesweeper:React.FC = () => {
 
     // opening the mines in this order is what makes them open in a circular pattern
     sortByDistanceFrom(position, allMines); 
+
+    setTimeout(() => setClickListener(), 100);
     openMinesWithDelay(allMines);
   }
 
@@ -281,6 +274,21 @@ const Minesweeper:React.FC = () => {
     });
   }
 
+  function listener() {
+    setShowGameOverModal(true);
+    removeClickListener();
+  }
+
+  const setClickListener = () => {
+    const gameContainer = document.getElementsByClassName("gameContainer")[0];
+    gameContainer.addEventListener("click", listener);
+  };
+
+  const removeClickListener = () => {
+    const gameContainer = document.getElementsByClassName("gameContainer")[0];
+    gameContainer.removeEventListener("click", listener);
+  }
+
   const openMinesWithDelay = (squaresArray: ISquare[]) => {
     setTimeout(() =>{
       if(squaresArray.length === 0)
@@ -291,6 +299,7 @@ const Minesweeper:React.FC = () => {
       openMinesWithDelay(squaresArray);
     }, 150 + 50 * (squaresArray.length % 2), squaresArray);
   }
+
   
   const changeGameDifficulty = (newDifficulty: string) => {
     let newGameConfigs = gameConfigsOptions[newDifficulty];
@@ -299,9 +308,11 @@ const Minesweeper:React.FC = () => {
 
   return (
     <div  className="gameContainer" 
-          style={{width:gameConfigs.columns*40}}
-          ref={gameContainerRef}
-          >
+    style={{width:gameConfigs.columns*40}}
+    ref={gameContainerRef}
+    >
+    {/* {showGameOverModal ? <GameOverModal /> : ""} */}
+    <GameOverModal isOpen={showGameOverModal} />
 
     <ConfigBar  flagsLeft={40} 
                 gameOver={gameStatus.gameOver} 

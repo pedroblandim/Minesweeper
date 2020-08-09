@@ -23,8 +23,8 @@ const Dropdown:React.FC<IProps> = (props:IProps) => {
         <select value = {value} 
                 onChange={(event) => callChangeHandler(event)} 
                 >
-            {props.options.map((option) => {
-                return <option >{option}</option>
+            {props.options.map((option, i) => {
+                return <option key={i} >{option}</option>
             })}
         </select>
     );

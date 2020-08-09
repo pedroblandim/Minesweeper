@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import Square from '../Square';
 import ConfigBar from '../ConfigBar';
 import './styles.css';
@@ -28,10 +28,7 @@ interface GameConfigs {
   mines: number;
 }
 
-// TODO transform Time FC in a Class Component and create start and stop function using ref
-// TODO shake animation
-// TODO restart time when the game restarts
-// TODO create the game only at the first click, making the first opened square to be empty
+// TODO refact dropdown
 // TODO do GameOver functions
 // TODO make logic that passes game over animation when user clicks
 // TODO flags counter
@@ -62,8 +59,12 @@ const Minesweeper:React.FC = () => {
   const defaultDifficulty = "easy";
   const defaultSquare     = {hasMine:false, isOpen: false, minesAround: 0, position:{row: 0, column: 0}};
   
+  const gameContainerRef = useRef<HTMLDivElement>(null);
+
   const [gameConfigs, setGameConfigs] = useState<GameConfigs>(gameConfigsOptions[defaultDifficulty]);
   const [gameStatus, setGameStatus]   = useState<GameStatus>({gameOver: false, minesLeft: 0, minesOpened: 0});
+
+  const [areMinesSet, setAreMinesSet] = useState<Boolean>(false);
 
   const [squares, setSquares]         = useState<ISquare[][]>([[defaultSquare]]);
   
@@ -73,42 +74,87 @@ const Minesweeper:React.FC = () => {
   useEffect(setClickListener, [gameStatus]);
 
   function startGame(){ // also restarts 
-    createGame();
+    createSquares();
     createGameStatus();
+    setAreMinesSet(false); // the mines are only set at the first click
   }  
 
-
-  function createGame(){
+  function createSquares(){
     const {rows, columns} = gameConfigs;
 
     const squares = createEmptyMatrix<ISquare>(rows, columns, defaultSquare);
     setPositions(squares);
-    setMines(squares);
-    setNumbers(squares);
     setSquares(squares);
-
   }
 
   const setPositions = (squares: ISquare[][]) => {
     squares.forEach((row, i) => row.forEach((square, j) => square.position = {row:i, column: j}));
   }
+  
+  const createGameStatus = () => {
+    const gameStatus: GameStatus ={
+      gameOver: false,
+      minesLeft: gameConfigs.mines,
+      minesOpened: 0
+    }
+    setGameStatus(gameStatus);
+  }
+   
 
-  const setMines = (squares: ISquare[][]) => {
+
+  function setClickListener() {
+    // if(!gameOver)
+      // return false;
+
+    // document.body.addEventListener()
+    
+  }
+  
+  const handleOpening = (row: number, column: number) => {
+    
+    if(!areMinesSet){
+      setMinesAround({row, column});
+      setNumbers(squares);
+      setAreMinesSet(true);
+    }
+
+    const {hasMine, isOpen, minesAround} = squares[row][column];
+    
+    if(isOpen)
+      return false;
+
+    if(gameContainerRef.current && (hasMine || minesAround === 0)){
+      shakeDiv(gameContainerRef.current);
+    }
+
+    if(hasMine){
+      open(row, column);
+      gameOver(row, column);  
+    } else {
+      openThisAndPlacesAround(row, column);
+    }
+  }
+
+  const setMinesAround = (position: Position) => {
     const {mines} = gameConfigs;
     
     let minesToPlace = mines;
     while(minesToPlace > 0){
-      minesToPlace = fillWithMinesRandomly(squares, minesToPlace);
+      minesToPlace = fillWithMinesRandomlyAround(position, minesToPlace);
     }
   }
 
-  const fillWithMinesRandomly = (squares: ISquare[][], minesToPlace: number):  number => {
+  const fillWithMinesRandomlyAround = (position: Position, minesToPlace: number):  number => {
     const {rows, columns} = gameConfigs;
     let minesPlaced     = 0;
 
     for(let i = 0; i < rows; i++ ){
       for(let j = 0; j < columns; j++){
-        if(minesPlaced < minesToPlace && !squares[i][j].hasMine && (Math.random() * 10) > 9){
+        if(minesPlaced < minesToPlace 
+            && !squares[i][j].hasMine 
+            && (Math.random() * 10) > 9
+            && getDistanceBetweenTwoPositions(position, {row:i, column:j}) > 2) // this condition prevents losing on the first click
+        {
           squares[i][j].hasMine = true;
           minesPlaced++;
         }
@@ -138,40 +184,6 @@ const Minesweeper:React.FC = () => {
       }
     }
     return count;
-  }
-
-  const createGameStatus = () => {
-    const gameStatus: GameStatus ={
-      gameOver: false,
-      minesLeft: gameConfigs.mines,
-      minesOpened: 0
-    }
-    setGameStatus(gameStatus);
-  }
-
-  function setClickListener() {
-    // if(!gameOver)
-      // return false;
-
-    // document.body.addEventListener()
-    
-  }
-  
-  const handleOpening = (row: number, column: number) => {
-    const {hasMine, isOpen, minesAround} = squares[row][column];
-    
-    if(isOpen)
-      return false;
-
-    if(hasMine || minesAround === 0)
-      shakeElement("gameContainer");    
-
-    if(hasMine){
-      open(row, column);
-      gameOver(row, column);  
-    } else {
-      openThisAndPlacesAround(row, column);
-    }
   }
 
   const openThisAndPlacesAround = (row: number, column: number) => {
@@ -236,12 +248,13 @@ const Minesweeper:React.FC = () => {
     updatedGameStatus.gameOver = true;
     setGameStatus(updatedGameStatus);
     openAllMinesAround(openedMine.position);
+    setAreMinesSet(false);
   }
 
   const openAllMinesAround = (position: Position) => {
     const allMines = getAllMines();
 
-    // opening the mines in this order is what makes the mines open in a circular pattern
+    // opening the mines in this order is what makes them open in a circular pattern
     sortByDistanceFrom(position, allMines); 
     openMinesWithDelay(allMines);
   }
@@ -276,8 +289,7 @@ const Minesweeper:React.FC = () => {
       openPosition(squaresArray[squaresArray.length - 1].position);
       squaresArray.pop();
       openMinesWithDelay(squaresArray);
-    }, 150 + 50 * (squaresArray.length
-      % 2), squaresArray);
+    }, 150 + 50 * (squaresArray.length % 2), squaresArray);
   }
   
   const changeGameDifficulty = (newDifficulty: string) => {
@@ -287,7 +299,9 @@ const Minesweeper:React.FC = () => {
 
   return (
     <div  className="gameContainer" 
-          style={{width:gameConfigs.columns*40}}>
+          style={{width:gameConfigs.columns*40}}
+          ref={gameContainerRef}
+          >
 
     <ConfigBar  flagsLeft={40} 
                 gameOver={gameStatus.gameOver} 
@@ -296,7 +310,7 @@ const Minesweeper:React.FC = () => {
                 difficulties={Object.keys(gameConfigsOptions)}
                 />
     
-    <table >
+    <table>
       <tbody>
       {squares.map( (row, i) =>{
         return(
@@ -340,22 +354,8 @@ function getDistanceBetweenTwoPositions(a: Position, b: Position){
   return Math.sqrt((a.row - b.row)**2 + (a.column - b.column)**2);
 }
 
-function shakeElement(elementaClass: string){
-  const element = document.getElementsByClassName(elementaClass)[0];
-  const movementController = (time: number) => {
-    return Math.sin(time)*2 / time;
-  };
-  let time = 0;
-  doShake(element, movementController(time));
+function shakeDiv(div: HTMLDivElement){
+  div.classList.add("shake");
+  setTimeout(() => div.classList.remove("shake"), 1000, div);
 }
 
-function doShake(element: Element, time: number){
-  // if(time < 1)
-  //   return false;
-  // element.setAttribute("style", "tr")
-  // setTimeout()
-}
-
-function setTranslate(element: HTMLCollectionOf<Element>, x: number){
-
-}

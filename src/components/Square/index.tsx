@@ -9,7 +9,7 @@ interface IProps {
     minesAround: number;
     hasMine: Boolean;
     opened: Boolean;
-    SweepMine: (row: number, column: number) => void;
+    handleOpening: (row: number, column: number) => void;
 }
 
 
@@ -34,7 +34,7 @@ const Square: React.FC<IProps> = (props) => {
 
     const open = () => {
         if(!props.opened){
-            props.SweepMine(row, column);
+            props.handleOpening(row, column);
         }
         return false;
     };

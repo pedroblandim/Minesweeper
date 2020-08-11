@@ -3,13 +3,14 @@ import { GiUnlitBomb } from 'react-icons/gi';
 import { FaFlag } from 'react-icons/fa';
 import './styles.css';
 
+
 interface IProps {
-    row: number;
-    column: number;
+    position: {row:number, column: number};
     minesAround: number;
     hasMine: Boolean;
-    opened: Boolean;
-    handleOpening: (row: number, column: number) => void;
+    isOpen: Boolean;
+    handleOpening: (position: {row: number, column: number}) => void;
+    updateNumberOfFlags: (flagsAdded: number) => void;
 }
 
 
@@ -25,27 +26,28 @@ const numbersColors:{[key: number]: string} = {
 }
 
 const Square: React.FC<IProps> = (props) => {
+
+    const {position, hasMine, minesAround, isOpen} = props;
+
+    const backgroundColor =  (position.row + position.column) % 2 === 0 ? "dark" : "light";
+
+    const [hasFlag, setHasFlag] = useState<Boolean>(false);
     
-    const backgroundColor =  (props.row + props.column) % 2 === 0 ? "dark" : "light";
-
-    const {row, column, hasMine, minesAround, opened} = props;
-
-    const [flag, setFlag] = useState<Boolean>(false);
-
     const open = () => {
-        if(!props.opened){
-            props.handleOpening(row, column);
+        if(!isOpen){
+            props.handleOpening(position);
         }
         return false;
     };
 
     function updateFlag(event: MouseEvent<HTMLTableDataCellElement, globalThis.MouseEvent>){
         event.preventDefault();
-        setFlag(!flag);
+        props.updateNumberOfFlags(hasFlag ? -1 : 1);
+        setHasFlag(!hasFlag);
     }
 
     function getCurrentImage(){
-        if(opened){
+        if(isOpen){
             if(hasMine)
                 return  (
                     <div style={{display:"flex", verticalAlign:"middle", justifyContent:"center"}}>
@@ -58,7 +60,7 @@ const Square: React.FC<IProps> = (props) => {
             else
                 return minesAround;
         } else {
-            if(flag){
+            if(hasFlag) {
                 return  (
                     <div style={{display:"flex", verticalAlign:"middle", justifyContent:"center"}}>
                         <FaFlag color="rgb(231, 42, 42)" />
@@ -74,9 +76,9 @@ const Square: React.FC<IProps> = (props) => {
 
     return (
         <td 
-        style={flag && !opened ? {} : {color:numbersColors[minesAround]}} 
-        className={`square ${props.opened ? "opened" : "closed"} ${backgroundColor}`} 
-        onClick={flag ? () => false : open}  
+        style={hasFlag && !isOpen ? {} : {color:numbersColors[minesAround]}} 
+        className={`square ${isOpen ? "opened" : "closed"} ${backgroundColor}`} 
+        onClick={hasFlag ? () => false : open}  
         onContextMenu={updateFlag} 
         >
             {getCurrentImage()}

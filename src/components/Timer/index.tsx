@@ -3,24 +3,16 @@ import './styles.css';
 import { FcClock } from 'react-icons/fc'
 
 
-
-interface TimerState {
-    seconds: number;
-
+interface IProps {
+    time: number;
+    setTime: (time: number) => void;
 }
 
 interface Timer {
     timerId: NodeJS.Timeout;
 }
 
-class Timer extends React.Component<{}, TimerState> {
-    
-    constructor(props:{}){
-        super(props);
-        this.state = {
-            seconds: 0
-        };
-    }
+class Timer extends React.Component<IProps, {}> {
 
     componentDidMount() {
         this.start();
@@ -31,9 +23,7 @@ class Timer extends React.Component<{}, TimerState> {
     }
 
     tick() {
-        this.setState({
-            seconds: this.state.seconds + 1
-        })
+        this.props.setTime(this.props.time + 1);
     }
 
     start(){
@@ -42,9 +32,7 @@ class Timer extends React.Component<{}, TimerState> {
     }
 
     restart(){
-        this.setState({
-            seconds: 0
-        });
+        this.props.setTime(0);
         this.start();
     }
 
@@ -57,7 +45,7 @@ class Timer extends React.Component<{}, TimerState> {
             <>
             <div className="timerContainer">
                 <FcClock  size={30} />
-                <p>{this.state.seconds}</p> 
+                <p>{this.props.time}</p> 
             </div>
             </>
         );

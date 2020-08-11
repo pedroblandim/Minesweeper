@@ -4,7 +4,7 @@
     padding: 0;
     transition: background-color .05s;
     text-align: center;
-    font-size: 20px;
+    font-size: 1.3rem;
 }
 
 .square.light{

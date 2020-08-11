@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import './styles.css';
 
 interface IProps {
     options: string[];
@@ -7,26 +8,44 @@ interface IProps {
 
 const Dropdown:React.FC<IProps> = (props:IProps) => {
 
-    const [value, setValue] = useState<string>("");
+    const [isOpen, setIsOpen] = useState<Boolean>(false);
 
-    useEffect(() => {
-        setValue(props.options[0]);
-    }, [props.options]);
+    const [value, setValue] = useState<string>(props.options[0]);
 
-    const callChangeHandler = (event:React.ChangeEvent<HTMLSelectElement>) => {
-        let newValue = event.target.value; 
+
+    const callChangeHandler = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        let newValue = event.currentTarget.innerText; 
         setValue(newValue);
         props.handleChange(newValue);
+        setIsOpen(false);
+        
+    }
+
+    const toggleDropdown = () => {
+        setIsOpen(!isOpen);
     }
 
     return (
-        <select value = {value} 
-                onChange={(event) => callChangeHandler(event)} 
-                >
+        <>
+        <div className="dropdownContainer" >
+            <div className="dropdownSelector" onClick={toggleDropdown}>
+                {value}
+            </div>
+            <div className={`dropdownOptions ${isOpen ? "" : "closed"}`}>
             {props.options.map((option, i) => {
-                return <option key={i} >{option}</option>
+                return (
+                    <div key={i} 
+                        className={`dropdownOption ${option === value ? "selected" : ""}`} 
+                        onClick={option === value ? () => false : callChangeHandler}
+                        >
+                                {option}
+                    </div>
+                        );
             })}
-        </select>
+            </div>
+        </div>
+
+        </>
     );
 }
 

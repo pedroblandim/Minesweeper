@@ -35,9 +35,8 @@ interface GameConfigs {
 // TODO show wrong placed flags when lost
 // TODO win animation
 // TODO save time when the user win (use local storage)
-// TODO refact dropdown (apply styles)
-// TODO flags counter
 // TODO win function
+// TODO close dropdown when clicking outside it
 
 
 const gameConfigsOptions:{[key:string]: GameConfigs} = {

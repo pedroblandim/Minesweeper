@@ -1,7 +1,9 @@
 import React, {useEffect, useState, useRef} from 'react';
 import './styles.css';
 import Timer from '../Timer';
+import ShowFlagsLeft from '../ShowFlagsLeft';
 import Dropdown from '../Dropdown';
+
 
 interface IProps {
     gameOver: Boolean;
@@ -9,6 +11,8 @@ interface IProps {
     flagsLeft: number;
     changeGameDifficulty: (difficulty:string) => void;
     difficulties: string[];
+    time: number;
+    setTime: (time: number) => void;
 }
 
 const ConfigBar:React.FC<IProps> = (props:IProps) => {
@@ -26,7 +30,7 @@ const ConfigBar:React.FC<IProps> = (props:IProps) => {
 
     useEffect(() => {
         setGameOver(props.gameOver);
-    })
+    }, [props.gameOver]);
 
     useEffect(() => {
         if(gameOver && timerRef && timerRef.current)
@@ -35,11 +39,17 @@ const ConfigBar:React.FC<IProps> = (props:IProps) => {
             timerRef.current.restart();
         
     }, [gameOver]);
-
+    
     return(
         <div className="configContainer" >
-            < Timer ref={timerRef} />
+            < Timer 
+                    ref={timerRef} 
+                    time={props.time}
+                    setTime={props.setTime}
+                    />
             
+            < ShowFlagsLeft flagsLeft={props.flagsLeft} />
+
             < Dropdown options={props.difficulties} 
                        handleChange={changeDifficulty} 
                         />

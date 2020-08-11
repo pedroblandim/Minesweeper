@@ -11,7 +11,7 @@ const Dropdown:React.FC<IProps> = (props:IProps) => {
 
     useEffect(() => {
         setValue(props.options[0]);
-    }, []);
+    }, [props.options]);
 
     const callChangeHandler = (event:React.ChangeEvent<HTMLSelectElement>) => {
         let newValue = event.target.value; 

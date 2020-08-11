@@ -1,17 +1,17 @@
 import React, {useState, useEffect, useRef} from 'react';
 import Square from '../Square';
 import ConfigBar from '../ConfigBar';
-import gameOverModal from '../GameOverModal';
+import gameOverModal from '../EndGameModal';
 
 import './styles.css';
-import GameOverModal from '../GameOverModal';
+import EndGameModal from '../EndGameModal';
 
 
 interface ISquare {
-  hasMine: Boolean;
-  isOpen: Boolean;
   minesAround: number;
   position: Position;
+  hasMine: Boolean;
+  isOpen: Boolean;
 }
 
 interface Position {
@@ -21,7 +21,7 @@ interface Position {
 
 interface GameStatus {
   minesOpened: number;
-  minesLeft: number;
+  squaresClosed: number;
   gameOver: Boolean;
 }
 
@@ -32,6 +32,9 @@ interface GameConfigs {
 }
 
 // TODO implement gameOverModal
+// TODO show wrong placed flags when lost
+// TODO win animation
+// TODO save time when the user win (use local storage)
 // TODO refact dropdown (apply styles)
 // TODO flags counter
 // TODO win function
@@ -59,24 +62,30 @@ const gameConfigsOptions:{[key:string]: GameConfigs} = {
 const Minesweeper:React.FC = () => {
 
   const defaultDifficulty = "easy";
-  const defaultSquare     = {hasMine:false, isOpen: false, minesAround: 0, position:{row: 0, column: 0}};
+  const defaultSquare     = {hasMine:false, isOpen: false, hasFlag: false, minesAround: 0, position:{row: 0, column: 0}};
   
   const gameContainerRef = useRef<HTMLDivElement>(null);
 
   const [gameConfigs, setGameConfigs] = useState<GameConfigs>(gameConfigsOptions[defaultDifficulty]);
-  const [gameStatus, setGameStatus]   = useState<GameStatus>({gameOver: false, minesLeft: 0, minesOpened: 0});
+  const [gameStatus, setGameStatus]   = useState<GameStatus>({gameOver: false, squaresClosed: 0, minesOpened: 0});
 
   const [squares, setSquares]         = useState<ISquare[][]>([[defaultSquare]]);
   
   const [areMinesSet, setAreMinesSet] = useState<Boolean>(false);
   const [showGameOverModal, setShowGameOverModal] = useState<Boolean>(false);
 
+
+  const [time, setTime] = useState<number>(0);
+  const [flagsLeft, setFlagsLeft] = useState<number>(gameConfigs.mines);
+
   useEffect(startGame, []);
   useEffect(startGame, [gameConfigs]);
 
   function startGame(){ // also restarts 
-    createSquares();
     createGameStatus();
+    setShowGameOverModal(false);
+
+    createSquares();
     setAreMinesSet(false); // the mines are only set at the first click
   }  
 
@@ -95,14 +104,15 @@ const Minesweeper:React.FC = () => {
   const createGameStatus = () => {
     const gameStatus: GameStatus ={
       gameOver: false,
-      minesLeft: gameConfigs.mines,
+      squaresClosed: gameConfigs.mines,
       minesOpened: 0
     }
     setGameStatus(gameStatus);
   }
    
 
-  const handleOpening = (row: number, column: number) => {
+  const handleOpening = (position: Position) => {
+    const {row, column} = position;
     const {hasMine, isOpen, minesAround} = squares[row][column];
     
     if(isOpen || gameStatus.gameOver) return false;
@@ -291,9 +301,12 @@ const Minesweeper:React.FC = () => {
 
   const openMinesWithDelay = (squaresArray: ISquare[]) => {
     setTimeout(() =>{
-      if(squaresArray.length === 0)
+      if(squaresArray.length === 0){
+        setShowGameOverModal(true);
         return false;
-      
+      }
+
+
       openPosition(squaresArray[squaresArray.length - 1].position);
       squaresArray.pop();
       openMinesWithDelay(squaresArray);
@@ -306,35 +319,48 @@ const Minesweeper:React.FC = () => {
     setGameConfigs(newGameConfigs);
   }
 
+  const updateNumberOfFlags = (flagsAdded: number) => {
+    setFlagsLeft(flagsLeft - flagsAdded)
+  }
+
   return (
     <div  className="gameContainer" 
     style={{width:gameConfigs.columns*40}}
     ref={gameContainerRef}
     >
     {/* {showGameOverModal ? <GameOverModal /> : ""} */}
-    <GameOverModal isOpen={showGameOverModal} />
+    <EndGameModal isOpen={showGameOverModal}
+                  isGameOver={gameStatus.gameOver}
+                    restartGame={startGame}
+                    time={time}
+                    score={0}
+                    />
 
-    <ConfigBar  flagsLeft={40} 
-                gameOver={gameStatus.gameOver} 
+    <ConfigBar  flagsLeft={flagsLeft}
                 mines={gameConfigs.mines}
-                changeGameDifficulty={changeGameDifficulty}
+                gameOver={gameStatus.gameOver} 
+                
                 difficulties={Object.keys(gameConfigsOptions)}
+                changeGameDifficulty={changeGameDifficulty}
+                
+                time={time}
+                setTime={setTime}
                 />
-    
     <table>
       <tbody>
       {squares.map( (row, i) =>{
         return(
           <tr key={i} >
             {row.map((square, j) => {
-              const {hasMine, minesAround, isOpen} = square;
+              const {hasMine, minesAround, isOpen, position} = square;
               return <Square  key         = {`${i}x${j}`} 
-                            row         = {i} 
-                            column      = {j} 
-                            opened      = {isOpen} 
+                            position    = {position}
+                            isOpen      = {isOpen} 
                             hasMine     = {hasMine} 
                             minesAround = {minesAround} 
-                            handleOpening   = {handleOpening}  
+                            
+                            handleOpening   = {handleOpening}
+                            updateNumberOfFlags = {updateNumberOfFlags}
                             />;
             })}
           </tr>)

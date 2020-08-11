@@ -12,6 +12,8 @@ interface ISquare {
   position: Position;
   hasMine: Boolean;
   isOpen: Boolean;
+
+  hasFlag: Boolean;
 }
 
 interface Position {
@@ -31,6 +33,7 @@ interface GameConfigs {
   mines: number;
 }
 
+// TODO fix restart button when animation isnt over
 // TODO implement gameOverModal
 // TODO show wrong placed flags when lost
 // TODO win animation
@@ -63,29 +66,28 @@ const Minesweeper:React.FC = () => {
   const defaultDifficulty = "easy";
   const defaultSquare     = {hasMine:false, isOpen: false, hasFlag: false, minesAround: 0, position:{row: 0, column: 0}};
   
-  const gameContainerRef = useRef<HTMLDivElement>(null);
+  const gameContainerRef = useRef<HTMLDivElement>(null); // necessary got the shaking animation
 
   const [gameConfigs, setGameConfigs] = useState<GameConfigs>(gameConfigsOptions[defaultDifficulty]);
   const [gameStatus, setGameStatus]   = useState<GameStatus>({gameOver: false, squaresClosed: 0, minesOpened: 0});
-
   const [squares, setSquares]         = useState<ISquare[][]>([[defaultSquare]]);
   
   const [areMinesSet, setAreMinesSet] = useState<Boolean>(false);
   const [showGameOverModal, setShowGameOverModal] = useState<Boolean>(false);
-
 
   const [time, setTime] = useState<number>(0);
   const [flagsLeft, setFlagsLeft] = useState<number>(gameConfigs.mines);
 
   useEffect(startGame, []);
   useEffect(startGame, [gameConfigs]);
+  useEffect(() => setFlagsLeft(gameConfigs.mines), [gameConfigs]);
 
   function startGame(){ // also restarts 
     createGameStatus();
     setShowGameOverModal(false);
 
     createSquares();
-    setAreMinesSet(false); // the mines are only set at the first click
+    setAreMinesSet(false); // the mines are set only at the first click
   }  
 
   function createSquares(){
@@ -117,7 +119,8 @@ const Minesweeper:React.FC = () => {
     if(isOpen || gameStatus.gameOver) return false;
     
     if(!areMinesSet){
-      setMinesAround({row, column});
+      // first opening
+      setMinesAround(position);
       setNumbers(squares);
       setAreMinesSet(true);
     }
@@ -318,8 +321,18 @@ const Minesweeper:React.FC = () => {
     setGameConfigs(newGameConfigs);
   }
 
-  const updateNumberOfFlags = (flagsAdded: number) => {
-    setFlagsLeft(flagsLeft - flagsAdded)
+  const toggleFlag = (position: Position) => {
+    const {row, column} = position;
+    const updatedSquares = squares;
+    const square = squares[row][column];
+    const hasFlag = square.hasFlag;
+    
+    if(square.isOpen) return false;
+
+    if(!hasFlag && flagsLeft <= 0) return false // no flags left
+
+    updatedSquares[row][column].hasFlag = !hasFlag;
+    setFlagsLeft(flagsLeft + (hasFlag ? 1 : -1));
   }
 
   return (
@@ -351,15 +364,17 @@ const Minesweeper:React.FC = () => {
         return(
           <tr key={i} >
             {row.map((square, j) => {
-              const {hasMine, minesAround, isOpen, position} = square;
+              const {hasMine, minesAround, isOpen, position, hasFlag} = square;
               return <Square  key         = {`${i}x${j}`} 
-                            position    = {position}
-                            isOpen      = {isOpen} 
-                            hasMine     = {hasMine} 
-                            minesAround = {minesAround} 
-                            
-                            handleOpening   = {handleOpening}
-                            updateNumberOfFlags = {updateNumberOfFlags}
+                              position    = {position}
+                              isOpen      = {isOpen} 
+                              hasMine     = {hasMine} 
+                              minesAround = {minesAround}
+                              hasFlag     = {hasFlag}
+
+                              handleOpening = {handleOpening}
+                              toggleFlag    = {toggleFlag}      
+                              // updateNumberOfFlags = {updateNumberOfFlags}
                             />;
             })}
           </tr>)

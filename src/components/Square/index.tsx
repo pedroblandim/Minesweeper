@@ -9,8 +9,9 @@ interface IProps {
     minesAround: number;
     hasMine: Boolean;
     isOpen: Boolean;
+    hasFlag: Boolean;
     handleOpening: (position: {row: number, column: number}) => void;
-    updateNumberOfFlags: (flagsAdded: number) => void;
+    toggleFlag: (position:{row: number, column: number}) => void;
 }
 
 
@@ -27,11 +28,9 @@ const numbersColors:{[key: number]: string} = {
 
 const Square: React.FC<IProps> = (props) => {
 
-    const {position, hasMine, minesAround, isOpen} = props;
+    const {position, hasMine, minesAround, isOpen, hasFlag} = props;
 
     const backgroundColor =  (position.row + position.column) % 2 === 0 ? "dark" : "light";
-
-    const [hasFlag, setHasFlag] = useState<Boolean>(false);
     
     const open = () => {
         if(!isOpen){
@@ -39,11 +38,10 @@ const Square: React.FC<IProps> = (props) => {
         }
         return false;
     };
-
-    function updateFlag(event: MouseEvent<HTMLTableDataCellElement, globalThis.MouseEvent>){
+    
+    const handleRightClick = (event: MouseEvent<HTMLTableDataCellElement, globalThis.MouseEvent>) => {
         event.preventDefault();
-        props.updateNumberOfFlags(hasFlag ? -1 : 1);
-        setHasFlag(!hasFlag);
+        props.toggleFlag(position);
     }
 
     function getCurrentImage(){
@@ -79,7 +77,7 @@ const Square: React.FC<IProps> = (props) => {
         style={hasFlag && !isOpen ? {} : {color:numbersColors[minesAround]}} 
         className={`square ${isOpen ? "opened" : "closed"} ${backgroundColor}`} 
         onClick={hasFlag ? () => false : open}  
-        onContextMenu={updateFlag} 
+        onContextMenu={handleRightClick} 
         >
             {getCurrentImage()}
 

@@ -1,4 +1,4 @@
-import React, {useState, MouseEvent} from 'react';
+import React, { MouseEvent} from 'react';
 import { GiUnlitBomb } from 'react-icons/gi';
 import { FaFlag } from 'react-icons/fa';
 import './styles.css';

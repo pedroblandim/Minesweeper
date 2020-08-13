@@ -14,7 +14,6 @@ interface GameConfigs {
   mines: number;
 }
 
-// TODO fix restart button when animation isnt over
 // TODO implement EndGameModal
 // TODO show wrong placed flags when lost
 // TODO win animation
@@ -47,8 +46,9 @@ const Minesweeper:React.FC = () => {
   const defaultDifficulty = "easy";  
   const gameContainerRef  = useRef<HTMLDivElement>(null); // necessary to the shaking animation
   
-  const [gameConfigs, setGameConfigs] = useState<GameConfigs>(gameConfigsOptions[defaultDifficulty]);
-  const [isGameWon, setIsGameWon]   = useState<Boolean>(false);
+  const [difficulty, setDifficulty]   = useState<string>(defaultDifficulty);
+  const [gameConfigs, setGameConfigs] = useState<GameConfigs>(gameConfigsOptions[difficulty]);
+  const [isGameWon, setIsGameWon]     = useState<Boolean>(false);
   const [isGameOver, setIsGameOver]   = useState<Boolean>(false);
 
   // values for the ConfigBar
@@ -76,6 +76,8 @@ const Minesweeper:React.FC = () => {
   const changeGameDifficulty = (newDifficulty: string) => {
     let newGameConfigs = gameConfigsOptions[newDifficulty];
     setGameConfigs(newGameConfigs);
+    setDifficulty(newDifficulty);
+    restartGame();
   }
 
   return (
@@ -84,8 +86,8 @@ const Minesweeper:React.FC = () => {
     ref={gameContainerRef}
     >
 
-    <EndGameModal isOpen={showGameOverModal}
-                  isGameOver={isGameOver}
+    <EndGameModal isOpen={true}
+                  isGameOver={true}
                   restartGame={restartGame}
                   time={time}
                   />
@@ -94,6 +96,7 @@ const Minesweeper:React.FC = () => {
                 mines={gameConfigs.mines}
                 gameOver={isGameOver} 
                 
+                difficulty={difficulty}
                 difficulties={Object.keys(gameConfigsOptions)}
                 changeGameDifficulty={changeGameDifficulty}
                 

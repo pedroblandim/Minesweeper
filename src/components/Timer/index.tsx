@@ -1,6 +1,6 @@
 import React from 'react';
 import './styles.css';
-import { FcClock } from 'react-icons/fc'
+import { FcClock } from 'react-icons/fc';
 
 
 interface IProps {

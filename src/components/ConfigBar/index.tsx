@@ -6,11 +6,12 @@ import Dropdown from '../Dropdown';
 
 
 interface IProps {
-    gameOver: Boolean;
     mines: number;
+    gameOver: Boolean;
     flagsLeft: number;
-    changeGameDifficulty: (difficulty:string) => void;
+    difficulty: string;
     difficulties: string[];
+    changeGameDifficulty: (difficulty:string) => void;
     time: number;
     setTime: (time: number) => void;
 }
@@ -50,8 +51,9 @@ const ConfigBar:React.FC<IProps> = (props:IProps) => {
             
             < ShowFlagsLeft flagsLeft={props.flagsLeft} />
 
-            < Dropdown options={props.difficulties} 
-                       handleChange={changeDifficulty} 
+            < Dropdown  selected={props.difficulty}
+                        options={props.difficulties} 
+                        handleChange={changeDifficulty} 
                         />
             
         </div>

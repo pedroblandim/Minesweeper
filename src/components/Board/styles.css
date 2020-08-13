@@ -1,0 +1,8 @@
+table { 
+    border-spacing: 0px;
+    border-collapse: separate;
+    /* border:3px solid #00416A; */
+    border-radius: 2px;
+    background-color: rgba(10, 45, 204, 0.685);
+    /* margin: 0 auto; */
+}

@@ -1,7 +1,8 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import './styles.css';
 
 interface IProps {
+    selected:string;
     options: string[];
     handleChange: (value:string) => void;
 }
@@ -10,15 +11,10 @@ const Dropdown:React.FC<IProps> = (props:IProps) => {
 
     const [isOpen, setIsOpen] = useState<Boolean>(false);
 
-    const [value, setValue] = useState<string>(props.options[0]);
-
-
     const callChangeHandler = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         let newValue = event.currentTarget.innerText; 
-        setValue(newValue);
         props.handleChange(newValue);
         setIsOpen(false);
-        
     }
 
     const toggleDropdown = () => {
@@ -29,14 +25,14 @@ const Dropdown:React.FC<IProps> = (props:IProps) => {
         <>
         <div className="dropdownContainer" >
             <div className="dropdownSelector" onClick={toggleDropdown}>
-                {value}
+                {props.selected}
             </div>
             <div className={`dropdownOptions ${isOpen ? "" : "closed"}`}>
             {props.options.map((option, i) => {
                 return (
                     <div key={i} 
-                        className={`dropdownOption ${option === value ? "selected" : ""}`} 
-                        onClick={option === value ? () => false : callChangeHandler}
+                        className={`dropdownOption ${option === props.selected ? "selected" : ""}`} 
+                        onClick={option === props.selected ? () => false : callChangeHandler}
                         >
                                 {option}
                     </div>

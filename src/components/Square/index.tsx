@@ -10,6 +10,7 @@ interface IProps {
     hasMine: Boolean;
     isOpen: Boolean;
     hasFlag: Boolean;
+    isGameWon: Boolean;
     handleOpening: (position: {row: number, column: number}) => void;
     toggleFlag: (position:{row: number, column: number}) => void;
 }
@@ -72,10 +73,15 @@ const Square: React.FC<IProps> = (props) => {
 
     }
 
+
     return (
         <td 
         style={hasFlag && !isOpen ? {} : {color:numbersColors[minesAround]}} 
-        className={`square ${isOpen ? "opened" : "closed"} ${backgroundColor}`} 
+        className=  {`square 
+                    ${isOpen ? "opened" : "closed"} 
+                    ${backgroundColor}
+                    ${props.isGameWon ? "isGameWon" : ""} 
+                `} 
         onClick={hasFlag ? () => false : open}  
         onContextMenu={handleRightClick} 
         >

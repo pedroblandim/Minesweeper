@@ -8,8 +8,9 @@ interface ISquare {
     position: Position;
     hasMine: Boolean;
     isOpen: Boolean;
-  
     hasFlag: Boolean;
+
+    wonGame: Boolean;
   }
 
 interface GameConfigs {
@@ -38,7 +39,7 @@ interface Position {
 
 const Board:React.FC<IProps> = (props: IProps) => {
  
-  const defaultSquare     = {hasMine:false, isOpen: false, hasFlag: false, minesAround: 0, position:{row: 0, column: 0}};
+  const defaultSquare     = {wonGame: false, hasMine:false, isOpen: false, hasFlag: false, minesAround: 0, position:{row: 0, column: 0}};
   
   const [squares, setSquares]         = useState<ISquare[][]>([[defaultSquare]]);
   
@@ -58,6 +59,7 @@ const Board:React.FC<IProps> = (props: IProps) => {
   useEffect(updateGameStatus, [props.isGameOver, props.isGameWon]);
   
   useEffect(updateSquaresClosed, [squares]);
+  useEffect(seeIfWonTheGame, [squaresClosed]);
   useEffect(updateFlagsLeft, [squares]);
 
   function startGame(){ // also restarts 
@@ -167,7 +169,7 @@ const Board:React.FC<IProps> = (props: IProps) => {
       const totalRows = squares.length;
       const totalColumns = squares[0].length;
       const {row, column} = position;
-      const {hasMine, isOpen, minesAround, hasFlag} = squares[row][column];
+      const {hasMine, isOpen, minesAround} = squares[row][column];
   
   
       if(hasMine || isOpen) return false;
@@ -291,6 +293,13 @@ const Board:React.FC<IProps> = (props: IProps) => {
     setSquaresClosed(squaresClosed);
   }
 
+  function seeIfWonTheGame() {
+    if (squaresClosed === props.gameConfigs.mines  && !isGameOver) {
+      setIsGameWon(true);
+      setTimeout(() => props.gameWon(), 500);
+    }
+  }
+
 
   const toggleFlag = (position: Position) => {
     const {row, column} = position;
@@ -316,7 +325,8 @@ const Board:React.FC<IProps> = (props: IProps) => {
 
 
 
-  return (<table>
+  return (
+  <table>
     <tbody>
     {squares.map( (row, i) =>{
       return(
@@ -329,6 +339,7 @@ const Board:React.FC<IProps> = (props: IProps) => {
                             hasMine     = {hasMine} 
                             minesAround = {minesAround}
                             hasFlag     = {hasFlag}
+                            isGameWon   = {isGameWon}
 
                             handleOpening = {handleOpening}
                             toggleFlag    = {toggleFlag}      
@@ -338,7 +349,8 @@ const Board:React.FC<IProps> = (props: IProps) => {
     })}
 
     </tbody>
-  </table>);
+  </table>
+  );
 }
     
 export default Board;

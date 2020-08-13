@@ -18,14 +18,40 @@
 
 }
 
-
-
 .square.opened.light{
     background-color: rgb(233, 224, 224);
 }
 
 .square.opened.dark{
     background-color: rgb(223, 221, 221);
+}
+
+
+.square.opened.light.isGameWon{
+    animation: bright-in-light 3s;
+    filter: brightness(120%);
+    background-color:#91caf8; 
+    /* animation: fadein-opened-light 2s; */
+    
+}
+
+.square.opened.dark.isGameWon{
+    animation: bright-in-dark 3s;
+    filter: brightness(120%);
+    background-color:#7bbef5;
+    /* animation: fadein-opened-dark 2s; */
+}
+
+.square.closed.dark.isGameWon{
+    /* animation: bright-in-dark 3s;
+    filter: brightness(120%); */
+    /* animation: fadein-closed-dark 5s; */
+}
+
+.square.closed.light.isGameWon{
+    /* animation: bright-in-light 3s;
+    filter: brightness(80%); */
+    /* animation: fadein-closed-light 5s; */
 }
 
 .square.closed:hover{
@@ -40,3 +66,13 @@
 }
 
 
+
+@keyframes bright-in-light {
+    from { filter: brightness(100%); background-color:rgb(233, 224, 224)}
+    to   { filter: brightness(120%);background-color:#91caf8; }
+}
+
+@keyframes bright-in-dark {
+    from { filter: brightness(100%); background-color:rgb(223, 221, 221)}
+    to   { filter: brightness(120%);background-color:#7bbef5; }
+}

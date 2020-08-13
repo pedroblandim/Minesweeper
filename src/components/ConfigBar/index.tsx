@@ -7,7 +7,8 @@ import Dropdown from '../Dropdown';
 
 interface IProps {
     mines: number;
-    gameOver: Boolean;
+    gameFinished: Boolean;
+    
     flagsLeft: number;
     difficulty: string;
     difficulties: string[];
@@ -18,7 +19,7 @@ interface IProps {
 
 const ConfigBar:React.FC<IProps> = (props:IProps) => {
 
-    const [gameOver, setGameOver] = useState<Boolean>(props.gameOver);
+    const [gameFinished, setGameFinished] = useState<Boolean>(props.gameFinished);
 
     const timerRef = useRef<Timer>(null);
 
@@ -30,16 +31,16 @@ const ConfigBar:React.FC<IProps> = (props:IProps) => {
     }
 
     useEffect(() => {
-        setGameOver(props.gameOver);
-    }, [props.gameOver]);
+        setGameFinished(props.gameFinished);
+    }, [props.gameFinished]);
 
     useEffect(() => {
-        if(gameOver && timerRef && timerRef.current)
+        if(gameFinished && timerRef && timerRef.current)
             timerRef.current.stop();
-        else if(!gameOver && timerRef && timerRef.current)
+        else if(!gameFinished && timerRef && timerRef.current)
             timerRef.current.restart();
         
-    }, [gameOver]);
+    }, [gameFinished]);
     
     return(
         <div className="configContainer" >

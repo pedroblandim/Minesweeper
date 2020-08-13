@@ -40,12 +40,19 @@ class Timer extends React.Component<IProps, {}> {
         clearInterval(this.timerId);
     }
 
+    formatTime(seconds: number):string{
+        let formattedSeconds = seconds.toString();
+        formattedSeconds = "0".repeat(3 - formattedSeconds.length) + formattedSeconds;
+        
+        return formattedSeconds;
+    }
+
     render() {
         return(
             <>
             <div className="timerContainer">
                 <FcClock  size={30} />
-                <p>{this.props.time}</p> 
+                <p>{this.formatTime(this.props.time)}</p> 
             </div>
             </>
         );

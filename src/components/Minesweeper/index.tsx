@@ -1,6 +1,5 @@
 import React, {useState, useRef} from 'react';
 
-import gameOverModal from '../EndGameModal';
 import EndGameModal from '../EndGameModal';
 import ConfigBar from '../ConfigBar';
 import Board from '../Board';
@@ -14,11 +13,7 @@ interface GameConfigs {
   mines: number;
 }
 
-// TODO implement EndGameModal
 // TODO show wrong placed flags when lost
-// TODO win animation
-// TODO save time when the user win (use local storage)
-// TODO win function
 // TODO close dropdown when clicking outside it
 
 
@@ -26,7 +21,7 @@ const gameConfigsOptions:{[key:string]: GameConfigs} = {
   "easy":{
     "rows": 8,
     "columns": 10,
-    "mines": 3
+    "mines": 10
   },
   "normal":{
     "rows": 14,
@@ -57,14 +52,17 @@ const Minesweeper:React.FC = () => {
   
   const [showGameOverModal, setShowGameOverModal] = useState<Boolean>(false);
 
-
   const gameOver = () => {
     setIsGameOver(true);
     setShowGameOverModal(true);
   }
 
   const gameWon = () => {
+    const currentTime = time;
+    setTime(currentTime);
+    updateRecord(currentTime);
     setIsGameWon(true);
+    setShowGameOverModal(true);
   }
 
   const restartGame = () => {
@@ -80,21 +78,33 @@ const Minesweeper:React.FC = () => {
     restartGame();
   }
 
+  function getRecord(): number {
+    const record = window.localStorage.getItem("record");
+    return record ? parseInt(record) : 0; 
+  }
+
+  function updateRecord(seconds: number) {
+    const record = window.localStorage.getItem("record");
+    if(!record || record === "0" || seconds < parseInt(record))
+      window.localStorage.setItem("record", seconds.toString());
+  }
+
   return (
     <div  className="gameContainer" 
     style={{width:gameConfigs.columns*40}}
     ref={gameContainerRef}
     >
 
-    <EndGameModal isOpen={true}
-                  isGameOver={true}
+    <EndGameModal isOpen={showGameOverModal}
+                  isGameOver={isGameOver}
                   restartGame={restartGame}
                   time={time}
+                  recordTime={getRecord()}
                   />
 
     <ConfigBar  flagsLeft={flagsLeft}
                 mines={gameConfigs.mines}
-                gameOver={isGameOver} 
+                gameFinished={isGameOver || isGameWon} 
                 
                 difficulty={difficulty}
                 difficulties={Object.keys(gameConfigsOptions)}

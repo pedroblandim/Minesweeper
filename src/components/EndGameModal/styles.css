@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Recursive&display=swap');
 
-.gameOverModal{
+.endGameModal{
     position: absolute;
     left: 0;
     top: 0;
@@ -13,10 +13,8 @@
 }
 
 .centralContainer {
-    background-color: rgba(47, 42, 42, 0.945);
-    color: white;
+    
     border-radius: 5px;
-
     padding: 15px 15px;
     margin: auto;
     width: 70%;
@@ -36,6 +34,36 @@
     
 }
 
+.centralContainer.gameOverContainer{
+    background-color: rgba(47, 42, 42, 0.945);
+    color: white;
+}
+
+.centralContainer.gameWonContainer {
+    background-color: rgba(17, 29, 199, 0.719);
+    color: white;
+}
+
+.gameOverHeader{
+    color:rgb(218, 218, 218);
+    font-size: 2rem;
+    text-align: center;
+    
+    margin: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgb(218, 218, 218);
+}
+
+.wonGameHeader {
+    
+    font-size: 2rem;
+    text-align: center;
+    
+    margin: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid white;
+}
+
 .closedModal {
     z-index: -1;
     background-color: transparent;
@@ -51,33 +79,18 @@
     animation: fadein 2s;
 }
 
-.gameOverHeader{
-    color:rgb(218, 218, 218);
-    font-size: 2rem;
-    text-align: center;
-    
-    margin: 0;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgb(218, 218, 218);
-}
-
-.wonGameHeader {
-    
-}
-
-.timeScore {
-    margin: 0 auto;
-
+.scoresContainer{
     display: flex;
     flex-direction: row;
-    align-items: center;
     flex:1;
+    align-items: center;
     justify-content: center;
+    
 }
 
-.timeScore p {
-    display: inline-block;
-    margin-left: 10px;
+.scoresContainer div {
+    text-align: center;
+    flex:1;
 }
 
 .restartButton {
